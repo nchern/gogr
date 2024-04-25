@@ -57,23 +57,42 @@ func sortedLines(s string) []string {
 }
 
 func Test_parseSource(t *testing.T) {
-	src := mustReadFile(t, "testdata/source.go")
-	w := &bytes.Buffer{}
-	if err := parseSource("testdata/source.go", string(src), w); err != nil {
-		t.Fatalf("parseSource: %s", err)
+	var tests = []struct {
+		expected string
+		given    string
+	}{
+		{
+			"testdata/source.expected.gogr",
+			"testdata/source.go",
+		},
+		{
+			"testdata/edge_case_nil.expected.gogr",
+			"testdata/edge_case_nil.go",
+		},
 	}
-	actualLines := sortedLines(w.String())
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.given, func(t *testing.T) {
 
-	expected := mustReadFile(t, "testdata/source.expected.gogr")
-	expectedLines := sortedLines(expected)
-	if len(actualLines) != len(expectedLines) {
-		t.Errorf("different lengthes: expected %d, actual %d",
-			len(expectedLines), len(actualLines))
-	}
-	for i, actual := range actualLines {
-		if expectedLines[i] != actual {
-			t.Errorf("line %d - not equal:\nexpected: %s\n  actual: %s",
-				i, expectedLines[i], actual)
-		}
+			src := mustReadFile(t, tt.given)
+			w := &bytes.Buffer{}
+			if err := parseSource(tt.given, string(src), w); err != nil {
+				t.Fatalf("parseSource: %s", err)
+			}
+			actualLines := sortedLines(w.String())
+
+			expected := mustReadFile(t, tt.expected)
+			expectedLines := sortedLines(expected)
+			if len(actualLines) != len(expectedLines) {
+				t.Errorf("different lengthes: expected %d, actual %d",
+					len(expectedLines), len(actualLines))
+			}
+			for i, actual := range actualLines {
+				if expectedLines[i] != actual {
+					t.Errorf("line %d - not equal:\nexpected: %s\n  actual: %s",
+						i, expectedLines[i], actual)
+				}
+			}
+		})
 	}
 }

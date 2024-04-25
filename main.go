@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"runtime"
 	"strings"
@@ -26,7 +27,8 @@ var (
 )
 
 func entity(src string, node ast.Node) string {
-	if node == nil {
+	isNil := reflect.ValueOf(node).Kind() == reflect.Ptr && reflect.ValueOf(node).IsNil()
+	if node == nil || isNil {
 		return ""
 	}
 	return src[node.Pos()-1 : node.End()-1]
@@ -81,7 +83,7 @@ func parseSource(filename string, src string, w io.Writer) error {
 				kind = "struct"
 				members = decl.Fields.List
 			default:
-				log.Printf("warn: type %s is unsupported", entity(src, nd.Type))
+				log.Printf("warn: type %T %s is unsupported", nd.Type, entity(src, nd.Type))
 				return true
 			}
 			for _, fld := range members {

@@ -1,0 +1,2 @@
+testdata/edge_case_nil.go:4:struct: Bar.id int
+testdata/edge_case_nil.go:7:method: Bar.SetIDSeq(start int)
