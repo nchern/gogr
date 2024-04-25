@@ -7,6 +7,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -35,11 +36,11 @@ func normalize(s string) string {
 	return normalizeSpace.ReplaceAllString(strings.ReplaceAll(s, "\n", ""), " ")
 }
 
-func printTokens(filename string, lineNumber int, kind string, tokens ...string) {
+func printTokens(w io.Writer, filename string, lineNumber int, kind string, tokens ...string) {
 	for i, tok := range tokens {
 		tokens[i] = strings.TrimSpace(normalize(tok))
 	}
-	fmt.Printf("%s:%d:%s: %s\n",
+	fmt.Fprintf(w, "%s:%d:%s: %s\n",
 		filename, lineNumber, kind, normalize(strings.Join(tokens, " ")))
 }
 
@@ -55,7 +56,7 @@ func joinNonEmpty(sep string, tokens ...string) string {
 	return strings.Join(tokens[:j], sep)
 }
 
-func parseSource(filename string, src string) error {
+func parseSource(filename string, src string, w io.Writer) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filename, src, parser.ParseComments)
 	if err != nil {
@@ -88,7 +89,7 @@ func parseSource(filename string, src string) error {
 				for _, fnam := range fld.Names {
 					str = fmt.Sprintf("%s.%s %s",
 						name, entity(src, fnam), entity(src, fld.Type))
-					printTokens(filename, lnum, kind, str)
+					printTokens(w, filename, lnum, kind, str)
 				}
 			}
 			return false
@@ -100,24 +101,24 @@ func parseSource(filename string, src string) error {
 				funcName := structName + "." + nd.Name.String()
 				funcSig := fmt.Sprintf("%s%s %s",
 					funcName, entity(src, nd.Type.Params), entity(src, nd.Type.Results))
-				printTokens(filename, lnum, "method", funcSig)
+				printTokens(w, filename, lnum, "method", funcSig)
 				return true
 			}
-			printTokens(filename, lnum, "", str)
+			printTokens(w, filename, lnum, "", str)
 		case *ast.CallExpr:
 			str := entity(src, nd)
-			printTokens(filename, lnum, "call", str)
+			printTokens(w, filename, lnum, "call", str)
 			return false
 		case *ast.IfStmt:
 			initStr := entity(src, nd.Init)
 			condStr := entity(src, nd.Cond)
-			printTokens(filename, lnum, "stmt", "if",
+			printTokens(w, filename, lnum, "stmt", "if",
 				joinNonEmpty(";", initStr, condStr))
 		case *ast.ForStmt:
 			initStr := entity(src, nd.Init)
 			condStr := entity(src, nd.Cond)
 			postStr := entity(src, nd.Post)
-			printTokens(filename, lnum, "stmt", "for",
+			printTokens(w, filename, lnum, "stmt", "for",
 				joinNonEmpty(";", initStr, condStr, postStr))
 		}
 		return true
@@ -125,7 +126,7 @@ func parseSource(filename string, src string) error {
 	return err
 }
 
-func parseFile(name string) error {
+func parseFile(name string, w io.Writer) error {
 	name, err := filepath.Abs(name)
 	if err != nil {
 		return err
@@ -134,19 +135,19 @@ func parseFile(name string) error {
 	if err != nil {
 		return err
 	}
-	return parseSource(name, string(src))
+	return parseSource(name, string(src), w)
 }
 
-func parseFiles(names <-chan string) {
+func parseFiles(names <-chan string, w io.Writer) {
 	for name := range names {
-		if err := parseFile(name); err != nil {
+		if err := parseFile(name, w); err != nil {
 			log.Printf("error: %s - %s", name, err)
 		}
 		inProgress.Add(-1)
 	}
 }
 
-func genFilenames(args []string) <-chan string {
+func genFilenames(args []string, r io.Reader) <-chan string {
 	res := make(chan string)
 	go func() {
 		defer func() { close(res) }()
@@ -156,7 +157,7 @@ func genFilenames(args []string) <-chan string {
 			}
 			return
 		}
-		scanner := bufio.NewScanner(os.Stdin)
+		scanner := bufio.NewScanner(r)
 		for scanner.Scan() {
 			res <- scanner.Text()
 		}
@@ -180,9 +181,9 @@ func main() {
 	flag.Parse()
 	names := make(chan string)
 	for i := 0; i < runtime.NumCPU()*2+1; i++ {
-		go parseFiles(names)
+		go parseFiles(names, os.Stdout)
 	}
-	for name := range genFilenames(os.Args[1:]) {
+	for name := range genFilenames(os.Args[1:], os.Stdin) {
 		inProgress.Add(1)
 		names <- name
 	}

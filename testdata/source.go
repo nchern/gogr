@@ -1,11 +1,9 @@
 package main
 
-import "log"
-
-type SomeStruct struct {
-	// multiple fields on one line
-	x, y, z float64
-}
+import (
+	"errors"
+	"log"
+)
 
 type ComplexInterface interface {
 	A(i int)
@@ -16,6 +14,11 @@ type ComplexInterface interface {
 	D(s string,
 		x int,
 		y int) (string, error)
+}
+
+type Foo struct {
+	// multiple fields on one line
+	x, y, z float64
 }
 
 // a method of Foo struct declared in another file
@@ -40,7 +43,9 @@ func (c ChainCalls) Int() int {
 }
 
 func (c ChainCalls) Str() (string, error) {
-	return 0
+	return "", errors.New(
+		"boom" +
+			"bam")
 }
 
 // exmaple of multiline declaration
@@ -75,7 +80,7 @@ func MultilineDecl(
 
 	for i := chain.Fuzz(
 		"a",
-		"b",
+		nil,
 		"c").
 		Int(); i < 10 ||
 		false ||

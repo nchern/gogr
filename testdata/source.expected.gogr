@@ -1,0 +1,21 @@
+testdata/source.go:10:interface: ComplexInterface.B () (int, error)
+testdata/source.go:11:interface: ComplexInterface.C (s string) error
+testdata/source.go:14:interface: ComplexInterface.D (s string, x int, y int) (string, error)
+testdata/source.go:21:struct: Foo.x float64
+testdata/source.go:21:struct: Foo.y float64
+testdata/source.go:21:struct: Foo.z float64
+testdata/source.go:25:method: Foo.String() string
+testdata/source.go:32:method: ChainCalls.Fuzz(x string, b *Foo, args ...string) ChainCalls
+testdata/source.go:37:method: ChainCalls.Buzz(i ...int) ChainCalls
+testdata/source.go:41:method: ChainCalls.Int() int
+testdata/source.go:45:method: ChainCalls.Str() (string, error)
+testdata/source.go:46:call: errors.New( "boom" + "bam")
+testdata/source.go:52:: func MultilineDecl( s string, i int, z float64) error
+testdata/source.go:58:call: log.Printf("foo", "bar", "fuzz", "buzz", )
+testdata/source.go:65:stmt: if isBla := true;isBla && true || false
+testdata/source.go:68:call: log.Printf("lala")
+testdata/source.go:73:call: chain.Fuzz("a", "b", "c"). Buzz( 1, 2, 3)
+testdata/source.go:81:call: chain.Fuzz( "a", nil, "c"). Int()
+testdata/source.go:81:stmt: for i := chain.Fuzz( "a", nil, "c"). Int();i < 10 || false || true;i++
+testdata/source.go:88:call: log.Println("asds")
+testdata/source.go:9:interface: ComplexInterface.A (i int)
