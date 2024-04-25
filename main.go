@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -164,8 +165,19 @@ func genFilenames(args []string) <-chan string {
 	return res
 }
 
-func main() {
+func init() {
+	flag.Usage = func() {
+		fmt.Fprintln(flag.CommandLine.Output(), "Usage: gogr [<filename1>, ..., <filenameN>]")
+		fmt.Fprintln(flag.CommandLine.Output())
+		fmt.Fprintln(flag.CommandLine.Output(),
+			"If no filenames provided as arguments, gogr reads filenames from stdin")
+		flag.PrintDefaults()
+	}
 	log.SetFlags(0)
+}
+
+func main() {
+	flag.Parse()
 	names := make(chan string)
 	for i := 0; i < runtime.NumCPU()*2+1; i++ {
 		go parseFiles(names)
