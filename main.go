@@ -24,6 +24,8 @@ var (
 	inProgress atomic.Int64
 
 	normalizeSpace = regexp.MustCompile(`\s+`)
+
+	isDebug = flag.Bool("d", false, "print all warnings if set")
 )
 
 func entity(src string, node ast.Node) string {
@@ -83,7 +85,9 @@ func parseSource(filename string, src string, w io.Writer) error {
 				kind = "struct"
 				members = decl.Fields.List
 			default:
-				log.Printf("warn: type %T %s is unsupported", nd.Type, entity(src, nd.Type))
+				if *isDebug {
+					log.Printf("warn: type %T %s is unsupported", nd.Type, entity(src, nd.Type))
+				}
 				return true
 			}
 			for _, fld := range members {
@@ -185,7 +189,7 @@ func main() {
 	for i := 0; i < runtime.NumCPU()*2+1; i++ {
 		go parseFiles(names, os.Stdout)
 	}
-	for name := range genFilenames(os.Args[1:], os.Stdin) {
+	for name := range genFilenames(flag.Args(), os.Stdin) {
 		inProgress.Add(1)
 		names <- name
 	}
