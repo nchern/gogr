@@ -69,6 +69,10 @@ func Test_parseSource(t *testing.T) {
 			"testdata/edge_case_nil.expected.gogr",
 			"testdata/edge_case_nil.go",
 		},
+		{
+			"testdata/anonymous_functions_and_structs.expected.gogr",
+			"testdata/anonymous_functions_and_structs.go",
+		},
 	}
 	for _, tt := range tests {
 		tt := tt

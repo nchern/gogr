@@ -112,7 +112,19 @@ func parseSource(filename string, src string, w io.Writer) error {
 			}
 			printTokens(w, filename, lnum, "", str)
 		case *ast.CallExpr:
-			str := entity(src, nd)
+			str := entity(src, nd.Fun)
+			args := make([]string, len(nd.Args))
+			for i, arg := range nd.Args {
+				switch fl := arg.(type) {
+				case *ast.FuncLit:
+					args[i] = fmt.Sprintf("func (%s) %s {...}",
+						entity(src, fl.Type.Params),
+						entity(src, fl.Type.Results))
+				default:
+					args[i] = entity(src, arg)
+				}
+			}
+			str += fmt.Sprintf("(%s)", strings.Join(args, ", "))
 			printTokens(w, filename, lnum, "call", str)
 			return false
 		case *ast.IfStmt:
