@@ -1,3 +1,4 @@
+testdata/anonymous_functions_and_structs.go:11:func_type: func(s string, j int, y float64) (int, error)
 testdata/anonymous_functions_and_structs.go:15:: func run(name string, fn func(string, int) (int, error)) (string, int, error)
 testdata/anonymous_functions_and_structs.go:19:call: log.Println(fn(name, 1))
 testdata/anonymous_functions_and_structs.go:23:: func Test()

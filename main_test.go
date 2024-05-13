@@ -92,6 +92,10 @@ func Test_parseSource(t *testing.T) {
 					len(expectedLines), len(actualLines))
 			}
 			for i, actual := range actualLines {
+				if i > len(expectedLines)-1 {
+					t.Errorf("line %d MISSING: %s", i, actual)
+					continue
+				}
 				if expectedLines[i] != actual {
 					t.Errorf("line %d - not equal:\nexpected: %s\n  actual: %s",
 						i, expectedLines[i], actual)

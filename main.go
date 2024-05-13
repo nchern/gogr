@@ -84,6 +84,10 @@ func parseSource(filename string, src string, w io.Writer) error {
 			case *ast.StructType:
 				kind = "struct"
 				members = decl.Fields.List
+			case *ast.FuncType:
+				str := entity(src, decl)
+				printTokens(w, filename, lnum, "func_type", str)
+				return false
 			default:
 				if *isDebug {
 					log.Printf("warn: type %T %s is unsupported", nd.Type, entity(src, nd.Type))

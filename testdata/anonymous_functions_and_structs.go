@@ -9,8 +9,8 @@ var fn = func(s string,
 }
 
 type Function func(s string,
-	i int,
-	x float64) (int, error)
+	j int,
+	y float64) (int, error)
 
 func run(name string,
 	fn func(string,
